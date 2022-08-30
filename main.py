@@ -4,15 +4,16 @@ from sys import exit
 pygame.init()
 
 # creates display surface
-screen = pygame.display.set_mode((1920,1080))
+screen_width, screen_length = 800,450
+screen = pygame.display.set_mode((screen_width,screen_length))
 
 pygame.display.set_caption('Python Game')
 
 clock = pygame.time.Clock()
 
 # creates surface
-test_surface = pygame.Surface((300,500))
-test_surface.fill('white')
+sky_surface = pygame.image.load('graphics/Sky.png')
+ground_surface = pygame.image.load('graphics/ground.png')
 
 while True:
     for event in pygame.event.get():
@@ -20,7 +21,8 @@ while True:
             pygame.quit()
             exit()
 
-    screen.blit(test_surface,(200,100))
+    screen.blit(sky_surface,(0,0))
+    screen.blit(ground_surface,(0,screen_length-168))
 
     pygame.display.update()
     clock.tick(60)
