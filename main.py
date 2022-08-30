@@ -22,11 +22,11 @@ text_surface = test_font.render('Hello world', False, 'yellow').convert()
 
 # snail
 snail_surface = pygame.image.load('graphics/snail/snail1.png').convert_alpha()
-snail_pos = 850
+snail_pos = 750
 snail_accel = 1
 
 player_surface = pygame.image.load('graphics/player/player_walk_1.png').convert_alpha()
-player_rect = player_surface.get_rect(topleft = (80,200))
+player_rect = player_surface.get_rect(midbottom = (80,300))
 
 while True:
     for event in pygame.event.get():
@@ -37,7 +37,7 @@ while True:
     screen.blit(sky_surface,(0,0))
     screen.blit(ground_surface,(0,300))
     screen.blit(text_surface, (300,350))
-    screen.blit(snail_surface, (snail_pos,260))
+    screen.blit(snail_surface, (snail_pos,265))
     snail_pos -= snail_accel
 
     # loops snail when it leaves the screen
