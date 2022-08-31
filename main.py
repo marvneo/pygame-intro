@@ -38,6 +38,22 @@ def check_collision(player, obstacle_list):
 
     else: return False
 
+def player_animation():
+    global player_surface, player_index
+
+    if player_rect.bottom < 300:
+        player_surface = player_jump
+
+    else:
+        player_index += 0.1
+
+        if player_index > 2:
+            player_index = 0
+
+        player_surface = player_walk[int(player_index)]
+        print(player_index)
+
+
 pygame.init()
 
 screen_width, screen_length = 800,400
@@ -66,7 +82,12 @@ snail_surface = pygame.image.load('graphics/snail/snail1.png').convert_alpha()
 fly_surface = pygame.image.load('graphics/fly/fly1.png').convert_alpha()
 obstacle_rect_list = []
 # player
-player_surface = pygame.image.load('graphics/player/player_walk_1.png').convert_alpha()
+player_walk_1 = pygame.image.load('graphics/player/player_walk_1.png').convert_alpha()
+player_walk_2 = pygame.image.load('graphics/player/player_walk_2.png').convert_alpha()
+player_jump = pygame.image.load('graphics/player/jump.png').convert_alpha()
+player_walk = [player_walk_1, player_walk_2]
+player_index = 0
+player_surface = player_walk[player_index]
 player_rect = player_surface.get_rect(midbottom = (80,300))
 player_gravity = 0
 # pause
@@ -119,7 +140,7 @@ while True:
                     game_active = True
                     game_over = False
                     start_time = pygame.time.get_ticks()
-                    obstacle_rect_list = []
+                    obstacle_rect_list.clear()
 
                 else:
                     # need to figure out the right scored if game is paused
@@ -143,6 +164,7 @@ while True:
         if player_rect.bottom >= 300: # stops player from falling through ground
             player_rect.bottom = 300
             player_gravity = 0
+        player_animation()
         screen.blit(player_surface, player_rect)
 
         if check_collision(player_rect, obstacle_rect_list):
