@@ -10,6 +10,9 @@ class Player(pygame.sprite.Sprite):
         player_walk_1 = pygame.image.load('graphics/player/player_walk_1.png').convert_alpha()
         player_walk_2 = pygame.image.load('graphics/player/player_walk_2.png').convert_alpha()
         self.player_jump = pygame.image.load('graphics/player/jump.png').convert_alpha()
+        self.jump_sound = pygame.mixer.Sound('audio/jump.mp3')
+        self.jump_sound.set_volume(0.05)
+
         self.player_walk = [player_walk_1, player_walk_2]
         self.player_index = 0
         self.image = self.player_walk[self.player_index]
@@ -17,18 +20,19 @@ class Player(pygame.sprite.Sprite):
         self.gravity = 0
 
 
+
     def player_input(self):
         keys = pygame.key.get_pressed()
         if keys[pygame.K_SPACE] and self.rect.bottom >= 300:
-            print(self.gravity)
-            self.gravity -= 20
+            self.jump_sound.play()
+            self.gravity -= 12
 
     def apply_gravity(self):
         if self.rect.bottom >= 301:
             self.rect.bottom = 300
             self.gravity = 0
         else:
-            self.gravity += 1
+            self.gravity += .5
         self.rect.y += self.gravity
 
     def animate(self):
@@ -116,6 +120,9 @@ clock = pygame.time.Clock()
 game_active = False
 start_time = 0
 score = 0
+bg_music = pygame.mixer.Sound('audio/music.wav')
+bg_music.set_volume(0.05)
+bg_music.play()
 
 player = pygame.sprite.GroupSingle()
 player.add(Player())
