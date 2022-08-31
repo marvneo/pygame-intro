@@ -4,7 +4,7 @@ Hi! This is a game I made using pygame. The goal of the game is simple, rack up 
 
 Game assets are taken from [here(art)](https://opengameart.org/content/platformer-art-pixel-edition) and [here(music)](https://opengameart.org/content/5-chiptunes-action).
 
-## To Play the game:
+## To play the game:
 1. Download a copy of the ZIP file using the green code button
 2. Extract ZIP file
 3. Go to dist, then main, then click on main.exe
