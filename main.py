@@ -8,7 +8,7 @@ def display_score():
     score_rect = score_surface.get_rect(topleft = (30,30))
     screen.blit(score_surface, score_rect)
 
-
+    return score
 
 pygame.init()
 
@@ -21,12 +21,14 @@ pygame.display.set_caption('Python Game')
 clock = pygame.time.Clock()
 game_active = False
 start_time = 0
+score = 0
+game_over = False
 # font type
 test_font = pygame.font.Font('font/Pixeltype.ttf', 50)
 # intro screen
 intro_text = test_font.render('SNAIL HUNTER', False, 'yellow').convert()
-intro_text_rect = intro_text.get_rect(center = (400, 50))
-instruction_text = test_font.render('Press spacebar to start and jump', False, 'white').convert()
+intro_text_rect = intro_text.get_rect(center = (400, 40))
+instruction_text = test_font.render('Press spacebar to start jumping', False, 'yellow').convert()
 instruction_text_rect = instruction_text.get_rect(center = (400, 350))
 player_stand = pygame.image.load('graphics/player/player_stand.png').convert_alpha()
 player_stand = pygame.transform.scale(player_stand,(250,250))
@@ -45,8 +47,10 @@ player_rect = player_surface.get_rect(midbottom = (80,300))
 player_gravity = 0
 # game over
 game_over_text = test_font.render('GAME OVER', False, 'red').convert()
-game_over_rect = game_over_text.get_rect(center =(400,200))
-game_over = False
+
+game_over_rect = game_over_text.get_rect(center =(400,150))
+
+
 
 # runs game
 while True:
@@ -75,7 +79,7 @@ while True:
         # renders animation
         screen.blit(sky_surface,(0,0))
         screen.blit(ground_surface,(0,300))
-        display_score()
+        score = display_score()
         # snail movement
         snail_rect.left -= snail_accel
         # loops snail when it leaves the screen
@@ -99,7 +103,9 @@ while True:
     else:
         if game_over:
             screen.blit(game_over_text, game_over_rect)
-
+            game_over_score_text = test_font.render('Your score is '+ f'{score}', False, 'red').convert()
+            game_over_score_rect = game_over_score_text.get_rect(center =(400,200))
+            screen.blit(game_over_score_text, game_over_score_rect)
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
