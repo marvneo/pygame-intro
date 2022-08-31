@@ -54,7 +54,8 @@ while True:
                 player_gravity -= 11
 
         if not game_active:
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+            # restarts game
+            if event.key == pygame.K_SPACE:
                 game_active = True
                 snail_rect.left = 900
 
