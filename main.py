@@ -27,11 +27,11 @@ game_over = False
 test_font = pygame.font.Font('font/Pixeltype.ttf', 50)
 # intro screen
 intro_text = test_font.render('SNAIL HUNTER', False, 'yellow').convert()
-intro_text_rect = intro_text.get_rect(center = (400, 40))
+intro_text_rect = intro_text.get_rect(center = (400, 60))
 instruction_text = test_font.render('Press spacebar to start jumping', False, 'yellow').convert()
 instruction_text_rect = instruction_text.get_rect(center = (400, 350))
 player_stand = pygame.image.load('graphics/player/player_stand.png').convert_alpha()
-player_stand = pygame.transform.scale(player_stand,(250,250))
+player_stand = pygame.transform.scale2x(player_stand)
 player_stand_rect = player_stand.get_rect(center = (400,200))
 # creates surface
 sky_surface = pygame.image.load('graphics/Sky.png').convert()
@@ -47,11 +47,10 @@ player_rect = player_surface.get_rect(midbottom = (80,300))
 player_gravity = 0
 # game over
 game_over_text = test_font.render('GAME OVER', False, 'red').convert()
-
 game_over_rect = game_over_text.get_rect(center =(400,150))
-
-
-
+game_over_stand = pygame.image.load('graphics/player/player_stand.png').convert_alpha()
+game_over_stand = pygame.transform.scale(game_over_stand,(800,800))
+game_over_stand_rect = game_over_stand.get_rect(center = (500,200))
 # runs game
 while True:
 
@@ -102,10 +101,12 @@ while True:
 
     else:
         if game_over:
+            screen.blit(game_over_stand, game_over_stand_rect)
             screen.blit(game_over_text, game_over_rect)
             game_over_score_text = test_font.render('Your score is '+ f'{score}', False, 'red').convert()
             game_over_score_rect = game_over_score_text.get_rect(center =(400,200))
             screen.blit(game_over_score_text, game_over_score_rect)
+
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
