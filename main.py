@@ -18,10 +18,14 @@ def enemy_movement(obstacle_list):
 
     if obstacle_list:
         for obstacle_rect in obstacle_list:
-            obstacle_rect.x -= randint(3,6)
 
-            if obstacle_rect.bottom == 300: screen.blit(snail_surface, obstacle_rect)
-            else: screen.blit(fly_surface, obstacle_rect)
+
+            if obstacle_rect.bottom == 300:
+                obstacle_rect.x -= 4.5
+                screen.blit(snail_surface, obstacle_rect)
+            else:
+                obstacle_rect.x -= 5
+                screen.blit(fly_surface, obstacle_rect)
 
             if obstacle_rect.x > -100:
                 new_obstacle_list.append(obstacle_rect)
@@ -29,6 +33,7 @@ def enemy_movement(obstacle_list):
         return new_obstacle_list
 
     else: return obstacle_list
+
 
 def check_collision(player, obstacle_list):
 
@@ -51,8 +56,6 @@ def player_animation():
             player_index = 0
 
         player_surface = player_walk[int(player_index)]
-        print(player_index)
-
 
 pygame.init()
 
@@ -78,8 +81,17 @@ player_stand_rect = player_stand.get_rect(center = (400,200))
 sky_surface = pygame.image.load('graphics/Sky.png').convert()
 ground_surface = pygame.image.load('graphics/ground.png').convert()
 # enemies
-snail_surface = pygame.image.load('graphics/snail/snail1.png').convert_alpha()
-fly_surface = pygame.image.load('graphics/fly/fly1.png').convert_alpha()
+snail_surface_1 = pygame.image.load('graphics/snail/snail1.png').convert_alpha()
+snail_surface_2 = pygame.image.load('graphics/snail/snail2.png').convert_alpha()
+snail_frame = [snail_surface_1, snail_surface_2]
+snail_frame_index = 0
+snail_surface = snail_frame[snail_frame_index]
+
+fly_surface_1 = pygame.image.load('graphics/fly/fly1.png').convert_alpha()
+fly_surface_2 = pygame.image.load('graphics/fly/fly2.png').convert_alpha()
+fly_frame = [fly_surface_1, fly_surface_2]
+fly_frame_index = 0
+fly_surface = fly_frame[fly_frame_index]
 obstacle_rect_list = []
 # player
 player_walk_1 = pygame.image.load('graphics/player/player_walk_1.png').convert_alpha()
@@ -105,7 +117,10 @@ game_over_stand_rect = game_over_stand.get_rect(center = (500,200))
 # timer
 obstacle_timer = pygame.USEREVENT + 1
 pygame.time.set_timer(obstacle_timer,1800)
-
+snail_animation_timer = pygame.USEREVENT + 2
+pygame.time.set_timer(snail_animation_timer, 500)
+fly_animation_timer = pygame.USEREVENT + 3
+pygame.time.set_timer(fly_animation_timer, 300)
 # runs game
 while True:
 
@@ -132,7 +147,20 @@ while True:
                 if randint(0,2):
                     obstacle_rect_list.append(snail_surface.get_rect(midbottom = (randint(800,1400),300)))
                 else:
-                    obstacle_rect_list.append(fly_surface.get_rect(midbottom = (randint(800,1400), 210)))
+                    obstacle_rect_list.append(fly_surface.get_rect(midbottom = (randint(800,1400), 180)))
+            if event.type == snail_animation_timer:
+                if snail_frame_index == 1:
+                    snail_frame_index = 0
+                else:
+                    snail_frame_index = 1
+                snail_surface = snail_frame[snail_frame_index]
+
+            if event.type == fly_animation_timer:
+                if fly_frame_index == 1:
+                    fly_frame_index = 0
+                else:
+                    fly_frame_index = 1
+                fly_surface = fly_frame[fly_frame_index]
 
         else:
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
@@ -153,12 +181,10 @@ while True:
         screen.blit(sky_surface,(0,0))
         screen.blit(ground_surface,(0,300))
         score = display_score()
-
         # player logic
         player_gravity += .4
         player_rect.y += player_gravity
-
-        # snail and obstacle logic
+        # obstacle logic
         obstacle_rect_list = enemy_movement(obstacle_rect_list)
 
         if player_rect.bottom >= 300: # stops player from falling through ground
