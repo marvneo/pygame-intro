@@ -5,27 +5,31 @@ from random import randint
 class Player(pygame.sprite.Sprite):
 
     def __init__(self):
+
         super().__init__()
         player_walk_1 = pygame.image.load('graphics/player/player_walk_1.png').convert_alpha()
         player_walk_2 = pygame.image.load('graphics/player/player_walk_2.png').convert_alpha()
         self.player_jump = pygame.image.load('graphics/player/jump.png').convert_alpha()
         self.player_walk = [player_walk_1, player_walk_2]
         self.player_index = 0
-
         self.image = self.player_walk[self.player_index]
         self.rect = self.image.get_rect(midbottom = (100,300))
         self.gravity = 0
 
+
     def player_input(self):
         keys = pygame.key.get_pressed()
         if keys[pygame.K_SPACE] and self.rect.bottom >= 300:
+            print(self.gravity)
             self.gravity -= 20
 
     def apply_gravity(self):
-        self.gravity += 1
-        self.rect.y += self.gravity
-        if self.rect.bottom >= 300:
+        if self.rect.bottom >= 301:
             self.rect.bottom = 300
+            self.gravity = 0
+        else:
+            self.gravity += 1
+        self.rect.y += self.gravity
 
     def animate(self):
         if self.rect.bottom < 300:
@@ -39,8 +43,9 @@ class Player(pygame.sprite.Sprite):
             self.image = self.player_walk[int(self.player_index)]
 
     def update(self):
-        self.player_input()
+
         self.apply_gravity()
+        self.player_input()
         self.animate()
 
 class Enemy(pygame.sprite.Sprite):
@@ -96,9 +101,11 @@ def display_score():
 def check_collision():
 
     if pygame.sprite.spritecollide(player.sprite,enemy_group,False):
+        enemy_group.empty()
         return True
     else:
         return False
+
 
 pygame.init()
 
@@ -169,6 +176,7 @@ while True:
                     enemy_group.add(Enemy('fly'))
                 else:
                     enemy_group.add(Enemy('snail'))
+
         else:
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                 if not pause:  # restarts game
@@ -178,7 +186,6 @@ while True:
                 else:
                     game_active = True
                     pause = False
-
 
     if game_active: # renders animation
         screen.blit(sky_surface,(0,0))
@@ -192,7 +199,6 @@ while True:
         if check_collision():
             game_active = False
             game_over = True
-
 
     else:
         if game_over: # game over screen
@@ -210,7 +216,6 @@ while True:
             screen.blit(player_stand, player_stand_rect)
             screen.blit(intro_text, intro_text_rect)
             screen.blit(instruction_text, instruction_text_rect)
-
 
 
     pygame.display.update()
