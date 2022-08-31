@@ -2,6 +2,87 @@ import pygame
 from sys import exit
 from random import randint
 
+class Player(pygame.sprite.Sprite):
+
+    def __init__(self):
+        super().__init__()
+        player_walk_1 = pygame.image.load('graphics/player/player_walk_1.png').convert_alpha()
+        player_walk_2 = pygame.image.load('graphics/player/player_walk_2.png').convert_alpha()
+        self.player_jump = pygame.image.load('graphics/player/jump.png').convert_alpha()
+        self.player_walk = [player_walk_1, player_walk_2]
+        self.player_index = 0
+
+        self.image = self.player_walk[self.player_index]
+        self.rect = self.image.get_rect(midbottom = (100,300))
+        self.gravity = 0
+
+    def player_input(self):
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_SPACE] and self.rect.bottom >= 300:
+            self.gravity -= 20
+
+    def apply_gravity(self):
+        self.gravity += 1
+        self.rect.y += self.gravity
+        if self.rect.bottom >= 300:
+            self.rect.bottom = 300
+
+    def animate(self):
+        if self.rect.bottom < 300:
+            self.image = self.player_jump
+
+        else:
+            self.player_index += 0.1
+            if self.player_index > 2:
+                self.player_index = 0
+
+            self.image = self.player_walk[int(self.player_index)]
+
+    def update(self):
+        self.player_input()
+        self.apply_gravity()
+        self.animate()
+
+class Enemy(pygame.sprite.Sprite):
+
+    def __init__(self,type):
+
+        super().__init__()
+        if type == "snail":
+            snail_surface_1 = pygame.image.load('graphics/snail/snail1.png').convert_alpha()
+            snail_surface_2 = pygame.image.load('graphics/snail/snail2.png').convert_alpha()
+            self.frame = [snail_surface_1, snail_surface_2]
+            y_pos = 300
+
+        elif type == "fly":
+            fly_surface_1 = pygame.image.load('graphics/fly/fly1.png').convert_alpha()
+            fly_surface_2 = pygame.image.load('graphics/fly/fly2.png').convert_alpha()
+            self.frame = [fly_surface_1, fly_surface_2]
+            y_pos = 180
+
+        self.frame_index = 0
+        self.image = self.frame[int(self.frame_index)]
+        self.rect = self.image.get_rect(midbottom = (randint(800,1400),y_pos))
+
+    def animate(self):
+        self.frame_index += 0.3
+        if self.frame_index > 2:
+            self.frame_index = 0
+
+        self.image = self.frame[int(self.frame_index)]
+
+    def movement(self):
+        self.rect.x -= 4
+
+    def exterminate(self):
+        if self.rect.x <= -100:
+            self.kill()
+
+    def update(self):
+        self.animate()
+        self.movement()
+        self.exterminate()
+
 def display_score():
 
     curr_time = pygame.time.get_ticks() - start_time
@@ -12,50 +93,12 @@ def display_score():
 
     return score
 
-def enemy_movement(obstacle_list):
+def check_collision():
 
-    new_obstacle_list = []
-
-    if obstacle_list:
-        for obstacle_rect in obstacle_list:
-
-
-            if obstacle_rect.bottom == 300:
-                obstacle_rect.x -= 4.5
-                screen.blit(snail_surface, obstacle_rect)
-            else:
-                obstacle_rect.x -= 5
-                screen.blit(fly_surface, obstacle_rect)
-
-            if obstacle_rect.x > -100:
-                new_obstacle_list.append(obstacle_rect)
-
-        return new_obstacle_list
-
-    else: return obstacle_list
-
-
-def check_collision(player, obstacle_list):
-
-    if obstacle_list:
-        for obstacle_rect in obstacle_list:
-            if player.colliderect(obstacle_rect): return True
-
-    else: return False
-
-def player_animation():
-    global player_surface, player_index
-
-    if player_rect.bottom < 300:
-        player_surface = player_jump
-
+    if pygame.sprite.spritecollide(player.sprite,enemy_group,False):
+        return True
     else:
-        player_index += 0.1
-
-        if player_index > 2:
-            player_index = 0
-
-        player_surface = player_walk[int(player_index)]
+        return False
 
 pygame.init()
 
@@ -66,6 +109,11 @@ clock = pygame.time.Clock()
 game_active = False
 start_time = 0
 score = 0
+
+player = pygame.sprite.GroupSingle()
+player.add(Player())
+
+enemy_group = pygame.sprite.Group()
 
 # font type
 test_font = pygame.font.Font('font/Pixeltype.ttf', 50)
@@ -80,28 +128,6 @@ player_stand_rect = player_stand.get_rect(center = (400,200))
 # creates surface
 sky_surface = pygame.image.load('graphics/Sky.png').convert()
 ground_surface = pygame.image.load('graphics/ground.png').convert()
-# enemies
-snail_surface_1 = pygame.image.load('graphics/snail/snail1.png').convert_alpha()
-snail_surface_2 = pygame.image.load('graphics/snail/snail2.png').convert_alpha()
-snail_frame = [snail_surface_1, snail_surface_2]
-snail_frame_index = 0
-snail_surface = snail_frame[snail_frame_index]
-
-fly_surface_1 = pygame.image.load('graphics/fly/fly1.png').convert_alpha()
-fly_surface_2 = pygame.image.load('graphics/fly/fly2.png').convert_alpha()
-fly_frame = [fly_surface_1, fly_surface_2]
-fly_frame_index = 0
-fly_surface = fly_frame[fly_frame_index]
-obstacle_rect_list = []
-# player
-player_walk_1 = pygame.image.load('graphics/player/player_walk_1.png').convert_alpha()
-player_walk_2 = pygame.image.load('graphics/player/player_walk_2.png').convert_alpha()
-player_jump = pygame.image.load('graphics/player/jump.png').convert_alpha()
-player_walk = [player_walk_1, player_walk_2]
-player_index = 0
-player_surface = player_walk[player_index]
-player_rect = player_surface.get_rect(midbottom = (80,300))
-player_gravity = 0
 # pause
 pause = False
 pause_time = 0
@@ -121,6 +147,8 @@ snail_animation_timer = pygame.USEREVENT + 2
 pygame.time.set_timer(snail_animation_timer, 500)
 fly_animation_timer = pygame.USEREVENT + 3
 pygame.time.set_timer(fly_animation_timer, 300)
+
+
 # runs game
 while True:
 
@@ -131,48 +159,23 @@ while True:
             exit()
 
         if game_active:
-            if event.type == pygame.MOUSEBUTTONDOWN: # jumping
-                if player_rect.collidepoint(event.pos) and player_rect.bottom == 300:
-                    player_gravity -= 11
-
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE and player_rect.bottom == 300: # jumping
-                    player_gravity -= 11
-                elif event.key == pygame.K_ESCAPE:
+                if event.key == pygame.K_ESCAPE:
                     pause_time = pygame.time.get_ticks()
                     pause = True
                     game_active = False
-
             if event.type == obstacle_timer:
-                if randint(0,2):
-                    obstacle_rect_list.append(snail_surface.get_rect(midbottom = (randint(800,1400),300)))
+                if randint(0,3) > 2:
+                    enemy_group.add(Enemy('fly'))
                 else:
-                    obstacle_rect_list.append(fly_surface.get_rect(midbottom = (randint(800,1400), 180)))
-            if event.type == snail_animation_timer:
-                if snail_frame_index == 1:
-                    snail_frame_index = 0
-                else:
-                    snail_frame_index = 1
-                snail_surface = snail_frame[snail_frame_index]
-
-            if event.type == fly_animation_timer:
-                if fly_frame_index == 1:
-                    fly_frame_index = 0
-                else:
-                    fly_frame_index = 1
-                fly_surface = fly_frame[fly_frame_index]
-
+                    enemy_group.add(Enemy('snail'))
         else:
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                 if not pause:  # restarts game
                     game_active = True
                     game_over = False
                     start_time = pygame.time.get_ticks()
-                    obstacle_rect_list.clear()
-
                 else:
-                    # need to figure out the right scored if game is paused
-                    # start_time = pause_time
                     game_active = True
                     pause = False
 
@@ -181,21 +184,14 @@ while True:
         screen.blit(sky_surface,(0,0))
         screen.blit(ground_surface,(0,300))
         score = display_score()
-        # player logic
-        player_gravity += .4
-        player_rect.y += player_gravity
-        # obstacle logic
-        obstacle_rect_list = enemy_movement(obstacle_rect_list)
+        player.draw(screen)
+        player.update()
+        enemy_group.draw(screen)
+        enemy_group.update()
 
-        if player_rect.bottom >= 300: # stops player from falling through ground
-            player_rect.bottom = 300
-            player_gravity = 0
-        player_animation()
-        screen.blit(player_surface, player_rect)
-
-        if check_collision(player_rect, obstacle_rect_list):
-             game_active = False
-             game_over = True
+        if check_collision():
+            game_active = False
+            game_over = True
 
 
     else:
