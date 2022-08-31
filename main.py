@@ -1,7 +1,9 @@
 import pygame
 from sys import exit
+from random import randint
 
 def display_score():
+
     curr_time = pygame.time.get_ticks() - start_time
     score = curr_time // 100
     score_surface = test_font.render('Score: '+ f'{score}', False, (64,64,64)).convert()
@@ -10,19 +12,42 @@ def display_score():
 
     return score
 
+def enemy_movement(obstacle_list):
+
+    new_obstacle_list = []
+
+    if obstacle_list:
+        for obstacle_rect in obstacle_list:
+            obstacle_rect.x -= randint(3,6)
+
+            if obstacle_rect.bottom == 300: screen.blit(snail_surface, obstacle_rect)
+            else: screen.blit(fly_surface, obstacle_rect)
+
+            if obstacle_rect.x > -100:
+                new_obstacle_list.append(obstacle_rect)
+
+        return new_obstacle_list
+
+    else: return obstacle_list
+
+def check_collision(player, obstacle_list):
+
+    if obstacle_list:
+        for obstacle_rect in obstacle_list:
+            if player.colliderect(obstacle_rect): return True
+
+    else: return False
+
 pygame.init()
 
-# creates display surface
 screen_width, screen_length = 800,400
 screen = pygame.display.set_mode((screen_width,screen_length))
-# adds title
-pygame.display.set_caption('Python Game')
-# necessary for frame rate control
+pygame.display.set_caption('Snail Hunter')
 clock = pygame.time.Clock()
 game_active = False
 start_time = 0
 score = 0
-game_over = False
+
 # font type
 test_font = pygame.font.Font('font/Pixeltype.ttf', 50)
 # intro screen
@@ -36,82 +61,107 @@ player_stand_rect = player_stand.get_rect(center = (400,200))
 # creates surface
 sky_surface = pygame.image.load('graphics/Sky.png').convert()
 ground_surface = pygame.image.load('graphics/ground.png').convert()
-# snail
+# enemies
 snail_surface = pygame.image.load('graphics/snail/snail1.png').convert_alpha()
-snail_pos = 800
-snail_rect = snail_surface.get_rect(midbottom = (snail_pos,300))
-snail_accel = 4
+fly_surface = pygame.image.load('graphics/fly/fly1.png').convert_alpha()
+obstacle_rect_list = []
 # player
 player_surface = pygame.image.load('graphics/player/player_walk_1.png').convert_alpha()
 player_rect = player_surface.get_rect(midbottom = (80,300))
 player_gravity = 0
+# pause
+pause = False
+pause_time = 0
+pause_text = test_font.render('PAUSED', False, 'yellow').convert()
+pause_text_rect = intro_text.get_rect(center = (400, 200))
 # game over
+game_over = False
 game_over_text = test_font.render('GAME OVER', False, 'red').convert()
 game_over_rect = game_over_text.get_rect(center =(400,150))
 game_over_stand = pygame.image.load('graphics/player/player_stand.png').convert_alpha()
 game_over_stand = pygame.transform.scale(game_over_stand,(800,800))
 game_over_stand_rect = game_over_stand.get_rect(center = (500,200))
+# timer
+obstacle_timer = pygame.USEREVENT + 1
+pygame.time.set_timer(obstacle_timer,1800)
+
 # runs game
 while True:
 
     for event in pygame.event.get():
+
         if event.type == pygame.QUIT:
             pygame.quit()
             exit()
 
-        # jumping
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            if player_rect.collidepoint(event.pos) and player_rect.bottom == 300:
-                player_gravity -= 11
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_SPACE and player_rect.bottom == 300:
-                player_gravity -= 11
+        if game_active:
+            if event.type == pygame.MOUSEBUTTONDOWN: # jumping
+                if player_rect.collidepoint(event.pos) and player_rect.bottom == 300:
+                    player_gravity -= 11
 
-        if not game_active:
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE and player_rect.bottom == 300: # jumping
+                    player_gravity -= 11
+                elif event.key == pygame.K_ESCAPE:
+                    pause_time = pygame.time.get_ticks()
+                    pause = True
+                    game_active = False
+
+            if event.type == obstacle_timer:
+                if randint(0,2):
+                    obstacle_rect_list.append(snail_surface.get_rect(midbottom = (randint(800,1400),300)))
+                else:
+                    obstacle_rect_list.append(fly_surface.get_rect(midbottom = (randint(800,1400), 210)))
+
+        else:
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
-                game_active = True
-                game_over = False
-                start_time = pygame.time.get_ticks()
-                snail_rect.left = 900
+                if not pause:  # restarts game
+                    game_active = True
+                    game_over = False
+                    start_time = pygame.time.get_ticks()
+                    obstacle_rect_list = []
 
-    if game_active:
-        # renders animation
+                else:
+                    # need to figure out the right scored if game is paused
+                    # start_time = pause_time
+                    game_active = True
+                    pause = False
+
+
+    if game_active: # renders animation
         screen.blit(sky_surface,(0,0))
         screen.blit(ground_surface,(0,300))
         score = display_score()
-        # snail movement
-        snail_rect.left -= snail_accel
-        # loops snail when it leaves the screen
-        if snail_rect.right < -100:
-            snail_rect.left = 900
-        screen.blit(snail_surface, snail_rect)
-        # player movements
+
+        # player logic
         player_gravity += .4
         player_rect.y += player_gravity
-        if player_rect.bottom >= 300:
+
+        # snail and obstacle logic
+        obstacle_rect_list = enemy_movement(obstacle_rect_list)
+
+        if player_rect.bottom >= 300: # stops player from falling through ground
             player_rect.bottom = 300
             player_gravity = 0
         screen.blit(player_surface, player_rect)
 
-        # handles collisions
-        if snail_rect.colliderect(player_rect):
-            game_active = False
-            game_over = True
+        if check_collision(player_rect, obstacle_rect_list):
+             game_active = False
+             game_over = True
 
 
     else:
-        if game_over:
+        if game_over: # game over screen
             screen.blit(game_over_stand, game_over_stand_rect)
             screen.blit(game_over_text, game_over_rect)
             game_over_score_text = test_font.render('Your score is '+ f'{score}', False, 'red').convert()
             game_over_score_rect = game_over_score_text.get_rect(center =(400,200))
             screen.blit(game_over_score_text, game_over_score_rect)
 
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    exit()
-        else:
+        elif pause: # pause screen
+            screen.blit(pause_text, pause_text_rect)
+
+        else: # intro screen
             screen.fill((94, 129, 162))
             screen.blit(player_stand, player_stand_rect)
             screen.blit(intro_text, intro_text_rect)
