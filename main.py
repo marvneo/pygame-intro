@@ -24,9 +24,13 @@ start_time = 0
 # font type
 test_font = pygame.font.Font('font/Pixeltype.ttf', 50)
 # intro screen
+intro_text = test_font.render('SNAIL HUNTER', False, 'yellow').convert()
+intro_text_rect = intro_text.get_rect(center = (400, 50))
+instruction_text = test_font.render('Press spacebar to start and jump', False, 'white').convert()
+instruction_text_rect = instruction_text.get_rect(center = (400, 350))
 player_stand = pygame.image.load('graphics/player/player_stand.png').convert_alpha()
+player_stand = pygame.transform.scale(player_stand,(250,250))
 player_stand_rect = player_stand.get_rect(center = (400,200))
-
 # creates surface
 sky_surface = pygame.image.load('graphics/Sky.png').convert()
 ground_surface = pygame.image.load('graphics/ground.png').convert()
@@ -39,7 +43,6 @@ snail_accel = 4
 player_surface = pygame.image.load('graphics/player/player_walk_1.png').convert_alpha()
 player_rect = player_surface.get_rect(midbottom = (80,300))
 player_gravity = 0
-
 # game over
 game_over_text = test_font.render('GAME OVER', False, 'red').convert()
 game_over_rect = game_over_text.get_rect(center =(400,200))
@@ -104,6 +107,8 @@ while True:
         else:
             screen.fill((94, 129, 162))
             screen.blit(player_stand, player_stand_rect)
+            screen.blit(intro_text, intro_text_rect)
+            screen.blit(instruction_text, instruction_text_rect)
 
 
 
